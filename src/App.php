@@ -12,6 +12,7 @@ class App
     protected $version;
 
     const BEFORE_PROCESS_ACTION = 0;
+    const ACTION_ERROR = 1;
 
     /** @var SubscriptionMapper $subscriptionMapper */
     protected $subscriptionMapper;
@@ -168,6 +169,7 @@ class App
 
         } catch (\Exception $e) {
             // Handle callback internal errors or bad logic
+            $this->fire(self::ACTION_ERROR, $e);
             return $action->error($e->getMessage());
         }
     }
