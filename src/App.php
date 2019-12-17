@@ -8,7 +8,10 @@ class App
     protected $controlPassword;
     protected $controlUrl;
     protected $actionsMap;
+    protected $eventsMap;
     protected $version;
+
+    const BEFORE_PROCESS_ACTION = 0;
 
     /** @var SubscriptionMapper $subscriptionMapper */
     protected $subscriptionMapper;
@@ -39,6 +42,20 @@ class App
         return $this;
     }
 
+    public function addEvent($eventType, \Closure $callback)
+    {
+        $this->eventsMap[$eventType][] = $callback;
+    }
+
+    protected function fire($eventType, ...$params)
+    {
+        if (is_array($this->eventsMap[$eventType])) {
+            foreach ($this->eventsMap[$eventType] as $callback) {
+                call_user_func_array($callback, $params);
+            }
+        }
+    }
+
     public function processRequest(array $loguxRequest) : array
     {
         if (!$this->checkControlPassword($loguxRequest['password'])) {
@@ -53,6 +70,9 @@ class App
                     ->toLoguxResponse();
             } else {
                 $action = ProcessableAction::createFromCommand($commandData);
+
+                $this->fire(self::BEFORE_PROCESS_ACTION, $action);
+
                 $processedCommands = array_merge(
                     $processedCommands,
                     $this->processAction($action)->toLoguxResponse()
@@ -78,8 +98,8 @@ class App
         $commands = array_map(function ($action) {
             /** @var array|DispatchableAction $action */
             return is_array($action)
-                    ? $action
-                    : $action->toCommand();
+                ? $action
+                : $action->toCommand();
         }, $actions);
 
         (new CurlClient)->request($this->controlUrl, [
@@ -101,13 +121,13 @@ class App
         return $command[0] === 'auth';
     }
 
-    public function processAuth(string $userId, string $token, string $authId) : bool
+    public function processAuth(string $authId, $userId, $token) : bool
     {
         if (!isset($this->actionsMap['auth'])) {
             throw new \LogicException('Auth handler is not specified');
         }
 
-        return $this->callAction($this->actionsMap['auth'], $userId, $token, $authId);
+        return $this->callAction($this->actionsMap['auth'], $authId, $userId, $token);
     }
 
     protected function processAction(ProcessableAction $action) : ProcessableAction
@@ -141,7 +161,7 @@ class App
 
 
             if (!$action->getLog()) {
-                throw new \LogicException("Action [$action->type] callback didnt affect action log ");
+                $action->approved()->processed();
             }
 
             return $action;
