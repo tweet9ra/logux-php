@@ -30,9 +30,9 @@ class AuthCommand
     {
         return App::getInstance()
             ->processAuth(
+                $this->commandData[3],
                 $this->commandData[1],
-                $this->commandData[2],
-                $this->commandData[3]
+                $this->commandData[2]
             );
     }
 }
