@@ -190,6 +190,6 @@ class App
             throw new \InvalidArgumentException("Invalid action callback method $class::$method");
         }
 
-        return call_user_func_array("$class::$method", $params);
+        return call_user_func_array([new $class, $method], $params);
     }
 }
