@@ -11,8 +11,9 @@ class App
     protected $eventsMap;
     protected $version;
 
-    const BEFORE_PROCESS_ACTION = 0;
-    const ACTION_ERROR = 1;
+    public const BEFORE_PROCESS_ACTION = 0;
+    public const ACTION_ERROR = 1;
+    public const AUTH_ACTION_ERROR = 2;
 
     /** @var SubscriptionMapper $subscriptionMapper */
     protected $subscriptionMapper;
@@ -67,8 +68,15 @@ class App
 
         foreach ($loguxRequest['commands'] as $commandData) {
             if ($this->isAuthCommand($commandData)) {
-                $processedCommands[] = AuthCommand::createFromCommand($commandData)
-                    ->toLoguxResponse();
+                try {
+                    $authResponse = AuthCommand::createFromCommand($commandData)
+                        ->toLoguxResponse();
+                } catch (\Exception $e) {
+                    $this->fire(self::AUTH_ACTION_ERROR, $e);
+                    $authResponse = ['error', $e->getMessage()];
+                }
+
+                $processedCommands[] = $authResponse;
             } else {
                 $action = ProcessableAction::createFromCommand($commandData);
 
