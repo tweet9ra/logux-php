@@ -18,11 +18,15 @@ class App
     /** @var SubscriptionMapper $subscriptionMapper */
     protected $subscriptionMapper;
 
+    /** @var ActionsDispatcherInterface $actionsDispatcher */
+    protected $actionsDispatcher;
+
     private static $instance;
 
     private function __construct() {
-        $this->subscriptionMapper = new SubscriptionMapper;
+        $this->subscriptionMapper = new SubscriptionMapper();
     }
+
     private function __clone() {}
     private function __wakeup() {}
 
@@ -44,6 +48,26 @@ class App
         return $this;
     }
 
+    public function getControlUrl()
+    {
+        return $this->controlUrl;
+    }
+
+    public function setActionsDispatcher(ActionsDispatcherInterface $dispatcher)
+    {
+        $this->actionsDispatcher = $dispatcher;
+        return $this;
+    }
+
+    public function getActionsDispatcher() : ActionsDispatcherInterface
+    {
+        if (!$this->actionsDispatcher) {
+            $this->actionsDispatcher = new CurlActionsDispatcher();
+        }
+
+        return $this->actionsDispatcher;
+    }
+
     public function addEvent($eventType, \Closure $callback)
     {
         $this->eventsMap[$eventType][] = $callback;
@@ -51,7 +75,7 @@ class App
 
     protected function fire($eventType, ...$params)
     {
-        if (is_array($this->eventsMap[$eventType])) {
+        if (isset($this->eventsMap[$eventType]) && is_array($this->eventsMap[$eventType])) {
             foreach ($this->eventsMap[$eventType] as $callback) {
                 call_user_func_array($callback, $params);
             }
@@ -111,7 +135,7 @@ class App
                 : $action->toCommand();
         }, $actions);
 
-        (new CurlClient)->request($this->controlUrl, [
+        $this->getActionsDispatcher()->dispatch([
             'password' => $this->controlPassword,
             'version' => $this->version,
             'commands' => $commands

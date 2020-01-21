@@ -1,10 +1,8 @@
 <?php
 
-
 namespace tweet9ra\Logux;
 
-
-class CurlClient implements ActionsDispatcherInterface
+class CurlActionsDispatcher implements ActionsDispatcherInterface
 {
     public function dispatch(array $commands)
     {

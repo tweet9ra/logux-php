@@ -3,17 +3,6 @@
 require_once "vendor/autoload.php";
 
 $input = file_get_contents('php://input');
-$input = '{
-  "version": 2,
-  "password": "secret",
-  "commands": [
-    [
-      "action",
-      { "type": "logux/subscribe", "channel": "chat/123/456" },
-      { "id": "1560954012858 38:Y7bysd:O0ETfc 0", "time": 1560954012858 }
-    ]
-  ]
-}';
 $inputDecoded = json_decode($input, true);
 
 // Creating app
