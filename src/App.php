@@ -82,15 +82,30 @@ class App
         }
     }
 
+    /**
+     * Handle request from Logux server
+     * @param array $loguxRequest
+     * @return array
+     */
     public function processRequest(array $loguxRequest) : array
     {
         if (!$this->checkControlPassword($loguxRequest['password'])) {
             throw new \InvalidArgumentException('Invalid logux control password');
         }
 
+        return $this->processCommands($loguxRequest['commands']);
+    }
+
+    /**
+     * Process commands
+     * @param array $commands
+     * @return array
+     */
+    public function processCommands(array $commands) : array
+    {
         $processedCommands = [];
 
-        foreach ($loguxRequest['commands'] as $commandData) {
+        foreach ($commands as $commandData) {
             if ($this->isAuthCommand($commandData)) {
                 try {
                     $authResponse = AuthCommand::createFromCommand($commandData)
