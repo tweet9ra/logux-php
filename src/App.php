@@ -239,4 +239,14 @@ class App
 
         return call_user_func_array([new $class, $method], $params);
     }
+
+    public function getControlPassword()
+    {
+        return $this->controlPassword;
+    }
+
+    public function getVersion()
+    {
+        return $this->version;
+    }
 }
