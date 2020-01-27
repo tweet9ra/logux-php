@@ -78,4 +78,9 @@ class BaseAction
     {
         return $this->_arguments[$name];
     }
+
+    public function userId()
+    {
+        return $this->_userId;
+    }
 }
