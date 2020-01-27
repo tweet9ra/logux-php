@@ -8,20 +8,20 @@ class BaseAction
 {
     const TYPE_SUBSCRIBE = 'logux/subscribe';
 
-    public $type;
-    public $arguments = [];
-    public $reasons = [];
+    public $_type;
+    public $_arguments = [];
+    public $_reasons = [];
 
-    public $time;
+    public $_time;
 
-    public $timeId;
-    public $userId = false;
-    public $tabId;
-    public $randomId;
-    public $order;
+    public $_timeId;
+    public $_userId = false;
+    public $_tabId;
+    public $_randomId;
+    public $_order;
 
-    /** @var array $recepients */
-    protected $recepients = [];
+    /** @var array $_recepients */
+    protected $_recepients = [];
 
     /**
      * @param string $type
@@ -34,8 +34,8 @@ class BaseAction
             throw new \InvalidArgumentException('Invalid action recepient type');
         }
 
-        $this->recepients[$type] = array_merge(
-            $this->recepients[$type] ?? [],
+        $this->_recepients[$type] = array_merge(
+            $this->_recepients[$type] ?? [],
             is_array($to) ? $to : [$to]
         );
 
@@ -44,28 +44,38 @@ class BaseAction
 
     public function getId()
     {
-        return $this->timeId.' '.$this->getNodeId().' '.$this->order;
+        return $this->_timeId.' '.$this->getNodeId().' '.$this->_order;
     }
 
     public function getNodeId()
     {
-        return "$this->userId:$this->tabId".($this->randomId ? ":$this->randomId" : '');
+        return "$this->_userId:$this->_tabId".($this->_randomId ? ":$this->_randomId" : '');
     }
 
     public function getClientId()
     {
-        return "$this->userId:$this->tabId";
+        return "$this->_userId:$this->_tabId";
     }
 
     public function setId(string $id)
     {
-        [$this->timeId, $node, $this->order] = explode(' ', $id);
-        [$this->userId, $this->tabId, $this->randomId] = explode(':', $node);
+        [$this->_timeId, $node, $this->_order] = explode(' ', $id);
+        [$this->_userId, $this->_tabId, $this->_randomId] = explode(':', $node);
     }
 
-    public function setType(string $type) : self
+    public function setType(string $_type) : self
     {
-        $this->type = $type;
+        $this->_type = $_type;
         return $this;
+    }
+
+    public function __set($name, $value)
+    {
+        $this->_arguments[$name] = $value;
+    }
+
+    public function __get($name)
+    {
+        return $this->_arguments[$name];
     }
 }

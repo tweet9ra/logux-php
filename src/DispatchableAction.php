@@ -20,20 +20,20 @@ class DispatchableAction extends BaseAction
     {
         return [
             'action',
-            array_merge(['type' => $this->type], $this->arguments),
-            array_merge(['reasons' => $this->reasons], $this->recepients)
+            array_merge(['type' => $this->_type], $this->_arguments),
+            array_merge(['reasons' => $this->_reasons], $this->_recepients)
         ];
     }
 
     public function setArguments(array $arguments) : self
     {
-        $this->arguments = $arguments;
+        $this->_arguments = $arguments;
         return $this;
     }
 
     public function setArgument($key, $value) : self
     {
-        $this->arguments[$key] = $value;
+        $this->_arguments[$key] = $value;
         return $this;
     }
 }

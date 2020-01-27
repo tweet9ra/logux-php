@@ -180,18 +180,18 @@ class App
 
     protected function processAction(ProcessableAction $action) : ProcessableAction
     {
-        if (!isset($this->actionsMap[$action->type])) {
+        if (!isset($this->actionsMap[$action->_type])) {
             return $action->unknownAction();
         }
 
         try {
-            if ($action->type == BaseAction::TYPE_SUBSCRIBE
+            if ($action->_type == BaseAction::TYPE_SUBSCRIBE
                 && is_array($this->actionsMap[BaseAction::TYPE_SUBSCRIBE])
             ) {
                 [$callback, $params] = $this->subscriptionMapper
                     ->match(
                         $this->actionsMap[BaseAction::TYPE_SUBSCRIBE],
-                        $action->arguments['channel']
+                        $action->_arguments['channel']
                     );
 
                 if (!$callback) {
@@ -203,7 +203,7 @@ class App
 
                 $this->callAction($callback, ...$params);
             } else {
-                $callback = $this->actionsMap[$action->type];
+                $callback = $this->actionsMap[$action->_type];
                 $this->callAction($callback, $action);
             }
 
