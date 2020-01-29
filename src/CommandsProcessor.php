@@ -44,7 +44,6 @@ class CommandsProcessor
 
         $authResult = $this->callAction(
             $this->actionsMap['auth'],
-            false,
             $command[3],
             $command[1],
             $command[2]
