@@ -74,7 +74,7 @@ class ProcessableAction extends BaseAction
     {
         // Handle internal server error
         if (isset($this->_log['error'])) {
-            return ['error', $this->_log['error']];
+            return [['error', $this->_log['error']]];
         }
 
         $response = [];
