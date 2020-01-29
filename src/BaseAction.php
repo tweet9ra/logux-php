@@ -76,7 +76,7 @@ class BaseAction
 
     public function __get($name)
     {
-        return $this->_arguments[$name];
+        return $this->_arguments[$name] ?? null;
     }
 
     public function userId()

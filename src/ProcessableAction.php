@@ -98,7 +98,7 @@ class ProcessableAction extends BaseAction
         unset($action['type']);
         $arguments = $action;
 
-        $instance = new self;
+        $instance = new static;
 
         $instance->_type = $type;
         $instance->_arguments = $arguments;
