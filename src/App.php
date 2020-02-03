@@ -144,13 +144,4 @@ class App
     {
         return $this->controlPassword === $controlPassword;
     }
-
-    public function processAuth(string $authId, $userId, $token) : bool
-    {
-        if (!isset($this->actionsMap['auth'])) {
-            throw new \LogicException('Auth handler is not specified');
-        }
-
-        return $this->callFunction($this->actionsMap['auth'], $authId, $userId, $token);
-    }
 }
