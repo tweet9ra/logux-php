@@ -1,18 +1,16 @@
 <?php
 
-
 namespace tweet9ra\Logux;
 
-
-class CurlClient
+class CurlActionsDispatcher implements ActionsDispatcherInterface
 {
-    public function request(string $url, array $commands)
+    public function dispatch(array $commands)
     {
         $body = json_encode($commands);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
+            CURLOPT_URL => App::getInstance()->getControlUrl(),
             CURLOPT_POST => true,
             CURLOPT_TIMEOUT => 3,
             CURLOPT_RETURNTRANSFER => 0,

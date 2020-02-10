@@ -3,17 +3,6 @@
 require_once "vendor/autoload.php";
 
 $input = file_get_contents('php://input');
-$input = '{
-  "version": 2,
-  "password": "secret",
-  "commands": [
-    [
-      "action",
-      { "type": "logux/subscribe", "channel": "chat/123/456" },
-      { "id": "1560954012858 38:Y7bysd:O0ETfc 0", "time": 1560954012858 }
-    ]
-  ]
-}';
 $inputDecoded = json_decode($input, true);
 
 // Creating app
@@ -24,22 +13,23 @@ class Foo {
     /**
      * Processing subscribe action
      * @param \tweet9ra\Logux\ProcessableAction $action
-     * @return void Return result of actions callback is not used, you must affect Action Object
+     * @return void Return result of actions callback is not used, but you can affect Action Object for response
      */
     public function subscribe (\tweet9ra\Logux\ProcessableAction $action, string $chatId, int $channelId)
     {
+        // Not nessessary, this will do automatically if Action was not affected
         $action->approved()
             ->processed();
     }
 
     /**
      * Check user credentials
-     * @param string $userId
-     * @param string $token
+     * @param string|null $userId
+     * @param string|null $token
      * @param string $authId Authentication command ID
      * @return bool
      */
-    public function auth(string $userId, string $token, string $authId) : bool
+    public function auth(string $authId, $userId = null, $token = null) : bool
     {
         return true;
     }

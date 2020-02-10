@@ -5,31 +5,31 @@ namespace tweet9ra\Logux;
 
 class ProcessableAction extends BaseAction
 {
-    /** @var array $log */
-    protected $log = [];
+    /** @var array $_log */
+    protected $_log = [];
 
     public function approved() : self
     {
-        $this->log[] = 'approved';
+        $this->_log[] = 'approved';
         return $this;
     }
 
     public function processed() : self
     {
-        $this->log[] = 'processed';
+        $this->_log[] = 'processed';
         return $this;
     }
 
     public function unknownChannel() : self
     {
-        if ($this->type !== BaseAction::TYPE_SUBSCRIBE) {
+        if ($this->_type !== BaseAction::TYPE_SUBSCRIBE) {
             throw new \BadMethodCallException(
                 'Only action with type'.BaseAction::TYPE_SUBSCRIBE
                 .' can return error "unknownChannel"'
             );
         }
 
-        $this->log[] = 'unknownChannel';
+        $this->_log[] = 'unknownChannel';
         return $this;
     }
 
@@ -39,14 +39,14 @@ class ProcessableAction extends BaseAction
      */
     public function unknownAction() : self
     {
-        if ($this->type === BaseAction::TYPE_SUBSCRIBE) {
+        if ($this->_type === BaseAction::TYPE_SUBSCRIBE) {
             throw new \BadMethodCallException(
                 'You must specify '.BaseAction::TYPE_SUBSCRIBE
                 .'. So it cannot return error "unknownAction"'
             );
         }
 
-        $this->log[] = 'unknownAction';
+        $this->_log[] = 'unknownAction';
         return $this;
     }
 
@@ -57,13 +57,13 @@ class ProcessableAction extends BaseAction
      */
     public function error(string $error) : self
     {
-        $this->log['error'] = $error;
+        $this->_log['error'] = $error;
         return $this;
     }
 
     public function getLog()
     {
-        return $this->log;
+        return $this->_log;
     }
 
     /**
@@ -73,18 +73,18 @@ class ProcessableAction extends BaseAction
     public function toLoguxResponse() : array
     {
         // Handle internal server error
-        if (isset($this->log['error'])) {
-            return ['error', $this->log['error']];
+        if (isset($this->_log['error'])) {
+            return [['error', $this->_log['error']]];
         }
 
         $response = [];
-        if ($this->recepients) {
-            $response['resend'] = $this->recepients;
+        if ($this->_recepients) {
+            $response[] = ['resend', $this->getId(), $this->_recepients];
         }
 
         $response = array_merge($response, array_map(function ($logType) {
             return [$logType, $this->getId()];
-        }, $this->log));
+        }, $this->_log));
 
         return $response;
     }
@@ -98,13 +98,13 @@ class ProcessableAction extends BaseAction
         unset($action['type']);
         $arguments = $action;
 
-        $instance = new self;
+        $instance = new static;
 
-        $instance->type = $type;
-        $instance->arguments = $arguments;
+        $instance->_type = $type;
+        $instance->_arguments = $arguments;
 
         $instance->setId($meta['id']);
-        $instance->time = $meta['time'];
+        $instance->_time = $meta['time'];
 
         return $instance;
     }
