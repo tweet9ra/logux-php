@@ -49,7 +49,9 @@ class BaseAction
 
     public function getNodeId()
     {
-        return "$this->_userId:$this->_tabId".($this->_randomId ? ":$this->_randomId" : '');
+        return ($this->_userId === false ? 'false' : $this->_userId)
+            . ":$this->_tabId"
+            . ($this->_randomId ? ":$this->_randomId" : '');
     }
 
     public function getClientId()
@@ -61,6 +63,10 @@ class BaseAction
     {
         [$this->_timeId, $node, $this->_order] = explode(' ', $id);
         [$this->_userId, $this->_tabId, $this->_randomId] = explode(':', $node);
+
+        if ($this->_userId === 'false') {
+            $this->_userId = false;
+        }
     }
 
     public function setType(string $_type) : self
