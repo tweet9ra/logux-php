@@ -6,8 +6,11 @@ namespace tweet9ra\Logux;
 
 class EventsHandler
 {
+    // Before process all actions command, except auth
     public const BEFORE_PROCESS_ACTION = 0;
+    // Some action got error, except auth
     public const ACTION_ERROR = 1;
+    // Auth action got error
     public const AUTH_ACTION_ERROR = 2;
 
     protected $eventsMap;

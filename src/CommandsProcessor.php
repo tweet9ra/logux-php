@@ -18,7 +18,8 @@ class CommandsProcessor
             try {
                 $authResponse = $this->processAuthCommand($command);
             } catch (\Exception $e) {
-                App::getInstance()->getEventsHandler()->fire(EventsHandler::AUTH_ACTION_ERROR, $e);
+                App::getInstance()->getEventsHandler()
+                    ->fire(EventsHandler::AUTH_ACTION_ERROR, $e, $command);
                 $authResponse =  ['error', $e->getMessage()];
             }
 
@@ -29,7 +30,7 @@ class CommandsProcessor
             $actionResponse = $this->processActionCommand($command);
         } catch (\Exception $e) {
             // Handle callback internal errors or bad logic
-            App::getEventsHandler()->fire(EventsHandler::ACTION_ERROR, $e);
+            App::getEventsHandler()->fire(EventsHandler::ACTION_ERROR, $e, $command);
             $actionResponse = [['error', $e->getMessage()]];
         }
 
