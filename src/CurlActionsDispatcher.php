@@ -2,15 +2,20 @@
 
 namespace tweet9ra\Logux;
 
-class CurlActionsDispatcher implements ActionsDispatcherInterface
+class CurlActionsDispatcher extends ActionsDispatcherBase
 {
+    public function __construct(string $controlUrl)
+    {
+        parent::__construct($controlUrl);
+    }
+
     public function dispatch(array $commands)
     {
         $body = json_encode($commands);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => App::getInstance()->getControlUrl(),
+            CURLOPT_URL => $this->controlUrl,
             CURLOPT_POST => true,
             CURLOPT_TIMEOUT => 3,
             CURLOPT_RETURNTRANSFER => 0,

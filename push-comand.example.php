@@ -1,12 +1,23 @@
 <?php
 
+use tweet9ra\Logux\App;
+use tweet9ra\Logux\CommandsProcessor;
+use tweet9ra\Logux\CurlActionsDispatcher;
+use tweet9ra\Logux\DispatchableAction;
+use tweet9ra\Logux\EventsHandler;
+
 require_once "vendor/autoload.php";
 
 // Creating app
-$app = \tweet9ra\Logux\App::getInstance()
-    ->loadConfig('secret', 'http://localhost:31338');
+$eventsHandler = new EventsHandler();
+$app = new App(
+    new CommandsProcessor($eventsHandler),
+    new CurlActionsDispatcher('http://localhost:31338'),
+    $eventsHandler,
+    'secret'
+);
 
-// Dispatch banch of actions
+// Dispatch actions
 $app->dispatchActions([
     [
         'NEW_CHAT_MESSAGE',
@@ -15,10 +26,10 @@ $app->dispatchActions([
     ]
 ]);
 
-// Dispatch single action
-(new \tweet9ra\Logux\DispatchableAction)
+$action = (new DispatchableAction)
     ->setType('NEW_CHAT_MESSAGE')
     ->sendTo('channels', ['chats/1337'])
     ->setArguments(['message' => 'hello world'])
-    ->setArgument('textColor', 'red')
-    ->dispatch();
+    ->setArgument('textColor', 'red');
+
+$app->dispatchAction($action);

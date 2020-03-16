@@ -14,7 +14,8 @@
     },
     "autoload": {
         "psr-4": {
-            "tweet9ra\\Logux\\": "src/"
+            "tweet9ra\\Logux\\": "src/",
+            "Tests\\": "tests/"
         }
     },
     "require-dev": {

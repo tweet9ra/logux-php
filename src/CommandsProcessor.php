@@ -2,7 +2,7 @@
 
 namespace tweet9ra\Logux;
 
-class CommandsProcessor
+class CommandsProcessor extends CommandsProcessorBase
 {
     protected $actionsMap;
 
@@ -18,8 +18,7 @@ class CommandsProcessor
             try {
                 $authResponse = $this->processAuthCommand($command);
             } catch (\Exception $e) {
-                App::getInstance()->getEventsHandler()
-                    ->fire(EventsHandler::AUTH_ACTION_ERROR, $e, $command);
+                $this->eventsHandler->fire(EventsHandler::AUTH_ACTION_ERROR, $e, $command);
                 $authResponse =  ['error', $e->getMessage()];
             }
 
@@ -30,7 +29,7 @@ class CommandsProcessor
             $actionResponse = $this->processActionCommand($command);
         } catch (\Exception $e) {
             // Handle callback internal errors or bad logic
-            App::getEventsHandler()->fire(EventsHandler::ACTION_ERROR, $e, $command);
+            $this->eventsHandler->fire(EventsHandler::ACTION_ERROR, $e, $command);
             $actionResponse = [['error', $e->getMessage()]];
         }
 
@@ -60,7 +59,7 @@ class CommandsProcessor
     {
         $actionType = $command[1]['type'];
         if (!isset($this->actionsMap[$actionType])) {
-            return ['unknownAction', $command[2]['id']];
+            return [['unknownAction', $command[2]['id']]];
         }
 
         $params = [];
@@ -71,7 +70,7 @@ class CommandsProcessor
             // Processing subscription action if subscription map defined as array
             [$callback, $params] = $this->matchSubscriptionChannel($command[1]['channel']);
             if (!$callback) {
-                return ['unknownChannel', $command[2]['id']];
+                return [['unknownChannel', $command[2]['id']]];
             }
         } else {
             $callback = $this->actionsMap[$actionType];
@@ -79,7 +78,7 @@ class CommandsProcessor
 
         $action = $this->createProcessableActionForCallback($callback, $command);
 
-        App::getEventsHandler()->fire(EventsHandler::BEFORE_PROCESS_ACTION, $action);
+        $this->eventsHandler->fire(EventsHandler::BEFORE_PROCESS_ACTION, $action);
 
         array_unshift($params, $action);
 
@@ -99,7 +98,7 @@ class CommandsProcessor
 
         foreach ($this->actionsMap[BaseAction::TYPE_SUBSCRIBE] as $key => $callback) {
             $regexp = str_replace('/', '\/', $key);
-            $regexp = '/'.preg_replace('/:[^\\\\\/]+/m', '([^\/]+)', $regexp).'/m';
+            $regexp = '/^'.preg_replace('/:[^\\\\\/]+/m', '([^\/]+)', $regexp).'$/m';
             preg_match_all($regexp, $channel, $matches, PREG_SET_ORDER, 0);
 
             if ($matches) {

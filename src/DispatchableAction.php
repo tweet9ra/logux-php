@@ -6,12 +6,6 @@ namespace tweet9ra\Logux;
 
 class DispatchableAction extends BaseAction
 {
-    public function dispatch()
-    {
-        return App::getInstance()
-            ->dispatchActions([$this]);
-    }
-
     /**
      * Get action representation that can be sent to logux as command
      * @return array

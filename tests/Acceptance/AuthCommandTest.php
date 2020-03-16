@@ -4,8 +4,7 @@
 namespace Tests\Unit;
 
 
-use PHPUnit\Framework\TestCase;
-use tweet9ra\Logux\App;
+use Tests\TestCase;
 
 class AuthCommandTest extends TestCase
 {
@@ -19,8 +18,7 @@ class AuthCommandTest extends TestCase
      */
     public function testProcessCorrectAuthCommand(array $authCommand, array $expectedResponse)
     {
-        $app = App::getInstance();
-        $app->setActionsMap([
+        $this->app->setActionsMap([
             'auth' => function (string $authId, string $userId = null, string $token = null) {
                 // Allowing access to all guests
                 if (!$userId) {
@@ -39,7 +37,7 @@ class AuthCommandTest extends TestCase
             }
         ]);
 
-        $successResponse = $app->processCommands([$authCommand]);
+        $successResponse = $this->app->processCommands([$authCommand]);
         $this->assertSame([$expectedResponse], $successResponse);
     }
 

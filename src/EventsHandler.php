@@ -4,7 +4,7 @@
 namespace tweet9ra\Logux;
 
 
-class EventsHandler
+class EventsHandler implements EventsHandlerInterface
 {
     // Before process all actions command, except auth
     public const BEFORE_PROCESS_ACTION = 0;

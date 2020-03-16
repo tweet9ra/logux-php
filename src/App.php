@@ -5,78 +5,42 @@ namespace tweet9ra\Logux;
 
 class App
 {
+    /**
+     * @var string $controlPassword
+     */
     protected $controlPassword;
-    protected $controlUrl;
-    protected $version;
+
+    /**
+     * @var string $protocolVersion
+     */
+    protected $protocolVersion;
 
     /** @var CommandsProcessor $commandsProcessor */
     protected $commandsProcessor;
 
-    /** @var ActionsDispatcherInterface $actionsDispatcher */
+    /** @var ActionsDispatcherBase $actionsDispatcher */
     protected $actionsDispatcher;
 
     /** @var EventsHandler $eventsHandler */
     private $eventsHandler;
 
-    /** @var self $instance */
-    private static $instance;
-
-    private function __construct() {
-        $this->commandsProcessor = new CommandsProcessor();
-        $this->eventsHandler = new EventsHandler();
-        $this->actionsDispatcher = new CurlActionsDispatcher();
+    public function __construct(
+        CommandsProcessorBase $commandsProcessor,
+        ActionsDispatcherBase $actionsDispatcher,
+        EventsHandlerInterface $eventsHandler,
+        string $controlPassword,
+        string $protocolVersion = '2'
+    ) {
+        $this->commandsProcessor = $commandsProcessor;
+        $this->actionsDispatcher = $actionsDispatcher;
+        $this->eventsHandler = $eventsHandler;
+        $this->controlPassword = $controlPassword;
+        $this->protocolVersion = $protocolVersion;
     }
 
-    private function __clone() {}
-    private function __wakeup() {}
-
-    public static function getInstance() : self
+    public function getEventsHandler(): EventsHandlerInterface
     {
-        if (!self::$instance) {
-            self::$instance = new self;
-        }
-
-        return self::$instance;
-    }
-
-    public function loadConfig(string $password, string $controlUrl, $version = 2)
-    {
-        $this->controlPassword = $password;
-        $this->controlUrl = $controlUrl;
-        $this->version = $version;
-
-        return $this;
-    }
-
-    public function getControlUrl()
-    {
-        return $this->controlUrl;
-    }
-
-    public function getControlPassword()
-    {
-        return $this->controlPassword;
-    }
-
-    public function getVersion()
-    {
-        return $this->version;
-    }
-
-    public static function getEventsHandler()
-    {
-        return self::$instance->eventsHandler;
-    }
-
-    public function setActionsDispatcher(ActionsDispatcherInterface $dispatcher)
-    {
-        $this->actionsDispatcher = $dispatcher;
-        return $this;
-    }
-
-    public function getActionsDispatcher() : ActionsDispatcherInterface
-    {
-        return $this->actionsDispatcher;
+        return $this->eventsHandler;
     }
 
     /**
@@ -131,13 +95,22 @@ class App
                 : $action->toCommand();
         }, $actions);
 
-        $this->getActionsDispatcher()->dispatch([
+        $this->actionsDispatcher->dispatch([
             'password' => $this->controlPassword,
-            'version' => $this->version,
+            'version' => $this->protocolVersion,
             'commands' => $commands
         ]);
 
         return $this;
+    }
+
+    /**
+     * @param DispatchableAction|array $action
+     * @return App
+     */
+    public function dispatchAction($action)
+    {
+        return $this->dispatchActions([$action]);
     }
 
     protected function checkControlPassword(string $controlPassword) : bool

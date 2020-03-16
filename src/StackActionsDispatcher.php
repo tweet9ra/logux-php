@@ -6,7 +6,7 @@ namespace tweet9ra\Logux;
  * Dispatcher that stores actions instead of sending to Logux
  * Useful for testing and debugging
  */
-class StackActionsDispatcher implements ActionsDispatcherInterface
+class StackActionsDispatcher extends ActionsDispatcherBase
 {
     protected $dispatchedActions = [];
 

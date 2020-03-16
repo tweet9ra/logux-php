@@ -7,13 +7,12 @@ This package allows to use Logux server as proxy between logux server and your p
 ### Initialization
 + Load config
 ```php
-$app = tweet9ra\Logux\App::getInstance();
 /**
 * password - logux controll password, that you specify in logux proxy
 * control_url - logux proxy http endpoint (usually http://localhost:31338)
 * protocol_version - version of protocol, default 2
 */
-$app->loadConfig('password', 'control_url', 'protocol_version');
+$app = new tweet9ra\Logux\App('password', 'control_url', 'protocol_version');
 ```
 + Set routes
 ```php
