@@ -1,10 +1,7 @@
 <?php
 
-
 namespace Tests\Classes;
 
-
-use tweet9ra\Logux\DispatchableAction;
 use tweet9ra\Logux\ProcessableAction;
 
 class LoguxController
@@ -16,13 +13,8 @@ class LoguxController
         }
     }
 
-    public function processAction()
+    public function processActionAndResend(ProcessableAction $action)
     {
-
-    }
-
-    public function processActionAndDispatchAnother()
-    {
-
+        $action->sendTo('channels', 'channel/1337');
     }
 }
