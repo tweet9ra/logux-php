@@ -11,7 +11,7 @@ class App
     protected $controlPassword;
 
     /**
-     * @var string $protocolVersion
+     * @var int $protocolVersion
      */
     protected $protocolVersion;
 
@@ -29,7 +29,7 @@ class App
         ActionsDispatcherBase $actionsDispatcher,
         EventsHandlerInterface $eventsHandler,
         string $controlPassword,
-        string $protocolVersion = '2'
+        int $protocolVersion = 2
     ) {
         $this->commandsProcessor = $commandsProcessor;
         $this->actionsDispatcher = $actionsDispatcher;
