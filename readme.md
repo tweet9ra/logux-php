@@ -2,6 +2,14 @@
 This package allows to use Logux server as proxy between logux server and your php app.  
 
 [Laravel adapter for this package](https://github.com/tweet9ra/logux-laravel)
+
+Version compatibility with logux backend protocol:  
+
+| Package version       | Logux backend protocol version|
+| ------------- |:-------------:|
+| < 4.0.0       | 2             |
+| ^4.0.0        | 3             |
+
 ## Quick start
 `composer require tweet9ra/logux-processor`
 ### Initialization
