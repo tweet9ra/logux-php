@@ -50,7 +50,7 @@ class App
      */
     public function processRequest(array $loguxRequest) : array
     {
-        if (!$this->checkControlPassword($loguxRequest['password'])) {
+        if (!$this->checkControlPassword($loguxRequest['secret'])) {
             throw new \InvalidArgumentException('Invalid logux control password');
         }
 
