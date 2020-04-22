@@ -96,7 +96,7 @@ class App
         }, $actions);
 
         $this->actionsDispatcher->dispatch([
-            'password' => $this->controlPassword,
+            'secret' => $this->controlPassword,
             'version' => $this->protocolVersion,
             'commands' => $commands
         ]);
