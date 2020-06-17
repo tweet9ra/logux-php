@@ -1,14 +1,15 @@
 # Logux processor for php #
-This package allows to use Logux server as proxy between logux server and your php app.  
+This package allows to use Logux server as proxy between logux server and your php app.
 
 [Laravel adapter for this package](https://github.com/tweet9ra/logux-laravel)
 
-Version compatibility with logux backend protocol:  
+Version compatibility with logux backend protocol:
 
 | Package version       | Logux backend protocol version|
 | ------------- |:-------------:|
 | < 4.0.0       | 2             |
 | ^4.0.0        | 3             |
+| ^5.0.0        | 4             |
 
 ## Quick start
 `composer require tweet9ra/logux-processor`
@@ -30,10 +31,15 @@ $app->setActionsMap([
     /**
     * If your logux proxy does not authenticate itself, you must specify this action
     */
-    'auth' => function (string $authId, string $userId = null, string $token = null): bool {
-        if (!$userId) {
+    'auth' => function (array $loguxAuthCommand): bool {
+		$userId = $loguxAuthCommand['userId'];
+		$token = $loguxAuthCommand['token'];
+
+		/* Anonymous login */
+        if ($userId === 'false') {
             return true;
         }
+
         return function_that_validates_token($userId, $token);
     },
 
@@ -68,7 +74,7 @@ All your callbacks takes `\tweet9ra\Logux\ProcessableAction` as first argument, 
 /**
  * @property int $text Message text content
  * @property int $chatId Chat room id
- * 
+ *
  * There is no useful features besides IDE autocompletion atm
 */
 class AddChatMessage extends \tweet9ra\Logux\ProcessableAction {}
