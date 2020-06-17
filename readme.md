@@ -32,10 +32,10 @@ $app->setActionsMap([
     * If your logux proxy does not authenticate itself, you must specify this action
     */
     'auth' => function (array $loguxAuthCommand): bool {
-		$userId = $loguxAuthCommand['userId'];
-		$token = $loguxAuthCommand['token'];
+        $userId = $loguxAuthCommand['userId'];
+        $token = $loguxAuthCommand['token'];
 
-		/* Anonymous login */
+        /* Anonymous login */
         if ($userId === 'false') {
             return true;
         }
