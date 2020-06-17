@@ -74,16 +74,27 @@ class ProcessableAction extends BaseAction
     {
         // Handle internal server error
         if (isset($this->_log['error'])) {
-            return [['error', $this->_log['error']]];
+            return [[
+                'answer' => 'error',
+                'details' => $this->_log['error'],
+                'id' => $this->getId()
+            ]];
         }
 
         $response = [];
         if ($this->_recepients) {
-            $response[] = ['resend', $this->getId(), $this->_recepients];
+            $response[] = [
+                'answer' => 'resend',
+                'id' => $this->getId(),
+                'channels' => $this->_recepients
+            ];
         }
 
         $response = array_merge($response, array_map(function ($logType) {
-            return [$logType, $this->getId()];
+            return [
+                'answer' => $logType,
+                'id' => $this->getId()
+            ];
         }, $this->_log));
 
         return $response;
@@ -91,8 +102,8 @@ class ProcessableAction extends BaseAction
 
     public static function createFromCommand(array $command) : self
     {
-        $action = $command[1];
-        $meta = $command[2];
+        $action = $command['action'];
+        $meta = $command['meta'];
 
         $type = $action['type'];
         unset($action['type']);

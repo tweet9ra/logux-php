@@ -2,6 +2,14 @@
 
 namespace tweet9ra\Logux;
 
+use Closure;
+use Exception;
+use InvalidArgumentException;
+use LogicException;
+use ReflectionException;
+use ReflectionFunction;
+use ReflectionMethod;
+
 class CommandsProcessor extends CommandsProcessorBase
 {
     protected $actionsMap;
@@ -14,12 +22,16 @@ class CommandsProcessor extends CommandsProcessorBase
     public function processCommand(array $command) : array
     {
         // Processing auth
-        if ($command[0] === 'auth') {
+        if ($command['command'] === 'auth') {
             try {
                 $authResponse = $this->processAuthCommand($command);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->eventsHandler->fire(EventsHandler::AUTH_ACTION_ERROR, $e, $command);
-                $authResponse =  ['error', $e->getMessage()];
+                $authResponse =  [
+                    'answer' => 'denied',
+                    'authId' => $command['authId'],
+                    'subprotocol' => $command['subprotocol']
+                ];
             }
 
             return [$authResponse];
@@ -27,39 +39,54 @@ class CommandsProcessor extends CommandsProcessorBase
 
         try {
             $actionResponse = $this->processActionCommand($command);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle callback internal errors or bad logic
             $this->eventsHandler->fire(EventsHandler::ACTION_ERROR, $e, $command);
-            $actionResponse = [['error', $e->getMessage()]];
+            $actionResponse = [[
+                'answer' => 'error',
+                'id' => $command['meta']['id'],
+                'details' => $e->getMessage()
+            ]];
         }
 
         return $actionResponse;
     }
 
+    /**
+     * @param array $command
+     * @return array
+     */
     protected function processAuthCommand(array $command)
     {
         if (!isset($this->actionsMap['auth'])) {
-            throw new \LogicException('Auth handler is not specified');
+            throw new LogicException('Auth handler is not specified');
         }
 
         $authResult = $this->callAction(
             $this->actionsMap['auth'],
-            $command[3],
-            $command[1],
-            $command[2]
+            $command
         );
 
         return [
-            $authResult ? 'authenticated' : 'denied',
-            $command[3]
-        ] ;
+            'answer' => $authResult ? 'authenticated' : 'denied',
+            'subprotocol' => $command['subprotocol'], // TODO: Implement subprotocol versioning instead of dirty hack,
+            'authId' => $command['authId']
+        ];
     }
 
+    /**
+     * @param array $command
+     * @return array|array[]
+     * @throws ReflectionException
+     */
     protected function processActionCommand(array $command)
     {
-        $actionType = $command[1]['type'];
+        $actionType = $command['action']['type'];
         if (!isset($this->actionsMap[$actionType])) {
-            return [['unknownAction', $command[2]['id']]];
+            return [[
+                'answer' => 'unknownAction',
+                'id' => $command['meta']['id']
+            ]];
         }
 
         $params = [];
@@ -68,9 +95,9 @@ class CommandsProcessor extends CommandsProcessorBase
             && is_array($this->actionsMap[BaseAction::TYPE_SUBSCRIBE])
         ) {
             // Processing subscription action if subscription map defined as array
-            [$callback, $params] = $this->matchSubscriptionChannel($command[1]['channel']);
+            [$callback, $params] = $this->matchSubscriptionChannel($command['action']['channel']);
             if (!$callback) {
-                return [['unknownChannel', $command[2]['id']]];
+                return [['unknownChannel', $command['meta']['id']]];
             }
         } else {
             $callback = $this->actionsMap[$actionType];
@@ -113,10 +140,9 @@ class CommandsProcessor extends CommandsProcessorBase
     }
 
     /**
-     * @param string|\Closure $callback
+     * @param string|Closure $callback
      * @param mixed ...$params
      * @return mixed
-     * @throws \ReflectionException
      */
     protected function callAction($callback, ...$params)
     {
@@ -127,21 +153,27 @@ class CommandsProcessor extends CommandsProcessorBase
         [$class, $method] = explode('@', $callback);
 
         if (!class_exists($class)) {
-            throw new \InvalidArgumentException("Invalid action callback class $class");
+            throw new InvalidArgumentException("Invalid action callback class $class");
         }
 
         if (!method_exists($class, $method)) {
-            throw new \InvalidArgumentException("Invalid action callback method $class::$method");
+            throw new InvalidArgumentException("Invalid action callback method $class::$method");
         }
 
         return call_user_func_array([new $class, $method], $params);
     }
 
+    /**
+     * @param $callback
+     * @param array $command
+     * @return ProcessableAction
+     * @throws ReflectionException
+     */
     protected function createProcessableActionForCallback($callback, array $command) : ProcessableAction
     {
         $method = is_callable($callback)
-            ? new \ReflectionFunction($callback)
-            : new \ReflectionMethod(str_replace('@', '::', $callback));
+            ? new ReflectionFunction($callback)
+            : new ReflectionMethod(str_replace('@', '::', $callback));
 
         $actionClassName = ProcessableAction::class;
 

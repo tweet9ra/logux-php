@@ -3,6 +3,12 @@
 
 namespace tweet9ra\Logux;
 
+use tweet9ra\Logux\exceptions\BruteForceException;
+use tweet9ra\Logux\exceptions\LoguxException;
+use tweet9ra\Logux\exceptions\NotSupportedProtocolException;
+use tweet9ra\Logux\exceptions\WrongFormatException;
+use tweet9ra\Logux\exceptions\WrongSecretException;
+
 class App
 {
     /**
@@ -47,14 +53,43 @@ class App
      * Handle request from Logux server
      * @param array $loguxRequest
      * @return array
+     * @throws LoguxException
      */
     public function processRequest(array $loguxRequest) : array
     {
-        if (!$this->checkControlPassword($loguxRequest['secret'])) {
-            throw new \InvalidArgumentException('Invalid logux control password');
-        }
+        session_id('logux-session');
+        session_start();
+        $this->checkBruteForce();
+        $this->checkFormat($loguxRequest);
+        $this->checkControlPassword($loguxRequest['secret']);
+        $this->checkProtocolVersion($loguxRequest['version']);
 
         return $this->processCommands($loguxRequest['commands']);
+    }
+
+    /**
+     * @param array $loguxRequest
+     * @throws WrongFormatException
+     */
+    public function checkFormat(array $loguxRequest) {
+        if (
+            !array_key_exists('secret', $loguxRequest)
+            || !array_key_exists('version', $loguxRequest)
+            || !array_key_exists('commands', $loguxRequest)
+        ) {
+            throw new WrongFormatException();
+        }
+    }
+
+    /**
+     * @param integer $protocolVersion
+     * @throws NotSupportedProtocolException
+     */
+    public function checkProtocolVersion($protocolVersion)
+    {
+        if ($this->protocolVersion !== $protocolVersion) {
+            throw new NotSupportedProtocolException();
+        }
     }
 
     /**
@@ -113,8 +148,36 @@ class App
         return $this->dispatchActions([$action]);
     }
 
-    protected function checkControlPassword(string $controlPassword) : bool
+    /**
+     * @param string $controlPassword
+     * @throws WrongSecretException
+     */
+    protected function checkControlPassword(string $controlPassword)
     {
-        return $this->controlPassword === $controlPassword;
+        if ($this->controlPassword !== $controlPassword) {
+            if (!isset($_SESSION['logux_brute_force_attempts'])) {
+                $_SESSION['logux_brute_force_attempts'] = 0;
+            }
+            $_SESSION['logux_brute_force_attempts'] += 1;
+            $_SESSION['logux_last_failed_attempt'] = time();
+
+            throw new WrongSecretException();
+        }
+    }
+
+    /**
+     * @throws BruteForceException
+     */
+    protected function checkBruteForce() {
+        if (isset($_SESSION['logux_last_failed_attempt'])) {
+            if (time() - $_SESSION['logux_last_failed_attempt'] < 60) {
+                if ($_SESSION['logux_brute_force_attempts'] >= 5) {
+                    throw new BruteForceException();
+                }
+            } else {
+                unset($_SESSION['logux_last_failed_attempt']);
+                unset($_SESSION['logux_brute_force_attempts']);
+            }
+        }
     }
 }
