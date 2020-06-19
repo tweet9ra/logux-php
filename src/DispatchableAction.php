@@ -13,9 +13,9 @@ class DispatchableAction extends BaseAction
     public function toCommand() : array
     {
         return [
-            'action',
-            array_merge(['type' => $this->_type], $this->_arguments),
-            array_merge(['reasons' => $this->_reasons], $this->_recepients)
+            'command' => 'action',
+            'action' => array_merge(['type' => $this->_type], $this->_arguments),
+            'meta' => array_merge(['reasons' => $this->_reasons], $this->_recepients)
         ];
     }
 
