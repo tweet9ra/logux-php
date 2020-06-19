@@ -57,8 +57,10 @@ class App
      */
     public function processRequest(array $loguxRequest) : array
     {
-        session_id('logux-session');
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+            session_id('logux-session');
+            session_start();
+        }
         $this->checkBruteForce();
         $this->checkFormat($loguxRequest);
         $this->checkControlPassword($loguxRequest['secret']);
