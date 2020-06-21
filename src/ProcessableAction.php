@@ -83,11 +83,10 @@ class ProcessableAction extends BaseAction
 
         $response = [];
         if ($this->_recepients) {
-            $response[] = [
+            $response[] = array_merge([
                 'answer' => 'resend',
-                'id' => $this->getId(),
-                'channels' => $this->_recepients
-            ];
+                'id' => $this->getId()
+            ], $this->_recepients);
         }
 
         $response = array_merge($response, array_map(function ($logType) {
